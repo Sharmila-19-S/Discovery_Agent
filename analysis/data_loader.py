@@ -1,33 +1,19 @@
 import pandas as pd
-import os
 
 
-class DataLoader:
+def load_data(file_path):
+    try:
+        if file_path.lower().endswith((".xlsx", ".xls")):
+            return pd.read_excel(file_path)
 
-    @staticmethod
-    def load(file_path: str, nrows=None):
-
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"{file_path} not found.")
-
-        extension = os.path.splitext(file_path)[1].lower()
-
-        if extension == ".csv":
-
-            df = pd.read_csv(
-                file_path,
-                nrows=nrows
-            )
-
-        elif extension in [".xlsx", ".xls"]:
-
-            df = pd.read_excel(
-                file_path,
-                nrows=nrows
-            )
-
-        else:
-
-            raise Exception("Unsupported file format.")
+        # Automatically detect CSV delimiter
+        df = pd.read_csv(
+            file_path,
+            sep=None,
+            engine="python"
+        )
 
         return df
+
+    except Exception as e:
+        raise RuntimeError(f"Could not read dataset: {str(e)}")
