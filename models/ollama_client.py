@@ -1,14 +1,60 @@
-
+import os
 import requests
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "qwen2.5:3b"
+
+# Local Ollama settings
+OLLAMA_URL = os.getenv(
+    "OLLAMA_URL",
+    "http://localhost:11434/api/generate"
+)
+
+OLLAMA_MODEL = os.getenv(
+    "OLLAMA_MODEL",
+    "qwen2.5:3b"
+)
+
+# Cloud LLM settings
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "gpt-5.6-luna"
+)
 
 
 def generate(system_prompt, user_prompt, temperature=0.1):
 
+    # ---------------------------------------------------------
+    # CLOUD MODE
+    # Used when OPENAI_API_KEY is available
+    # ---------------------------------------------------------
+    if OPENAI_API_KEY:
+
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=OPENAI_API_KEY)
+
+            response = client.responses.create(
+                model=OPENAI_MODEL,
+                instructions=system_prompt,
+                input=user_prompt,
+                temperature=temperature,
+                max_output_tokens=700
+            )
+
+            return response.output_text
+
+        except Exception as e:
+            raise RuntimeError(
+                f"Cloud LLM error: {str(e)}"
+            )
+
+    # ---------------------------------------------------------
+    # LOCAL MODE
+    # Used when no cloud API key is available
+    # ---------------------------------------------------------
     print("Connecting to Ollama...")
-    print("Model:", MODEL_NAME)
+    print("Model:", OLLAMA_MODEL)
 
     prompt = f"""
 <System>
@@ -19,7 +65,7 @@ def generate(system_prompt, user_prompt, temperature=0.1):
 """
 
     payload = {
-        "model": MODEL_NAME,
+        "model": OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
         "options": {
