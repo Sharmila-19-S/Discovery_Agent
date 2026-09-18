@@ -1,0 +1,47 @@
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Datasets
+data/**/*.csv
+data/**/*.xlsx
+data/**/*.xls
+
+# Generated outputs
+outputs/
+
+# Backup files
+*_backup.py
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Python build files
+build/
+dist/
+*.egg-info/
