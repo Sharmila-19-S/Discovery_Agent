@@ -8,7 +8,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objects as go
 
 
 # ============================================================
@@ -66,7 +65,6 @@ st.markdown(
     .hero-title {
         font-size: 42px;
         font-weight: 750;
-        letter-spacing: -1px;
         color: #ffffff;
     }
 
@@ -74,27 +72,6 @@ st.markdown(
         color: #8b98ad;
         font-size: 17px;
         margin-top: 6px;
-    }
-
-    .upload-card {
-        background: #121925;
-        border: 1px solid #263247;
-        border-radius: 18px;
-        padding: 30px;
-        margin: 10px 0 30px 0;
-    }
-
-    .upload-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #ffffff;
-        margin-bottom: 8px;
-    }
-
-    .upload-text {
-        color: #9ba8bb;
-        font-size: 15px;
-        margin-bottom: 20px;
     }
 
     .dataset-header {
@@ -214,23 +191,6 @@ st.markdown(
         margin-bottom: 10px;
     }
 
-    .empty-title {
-        text-align: center;
-        font-size: 30px;
-        font-weight: 700;
-        color: #ffffff;
-        margin-top: 80px;
-    }
-
-    .empty-text {
-        text-align: center;
-        color: #8d99aa;
-        font-size: 16px;
-        max-width: 650px;
-        margin: 12px auto;
-        line-height: 1.6;
-    }
-
     .pipeline {
         display: flex;
         justify-content: center;
@@ -274,13 +234,8 @@ def load_json(filename, default=None):
         return default
 
     try:
-        with open(
-            path,
-            "r",
-            encoding="utf-8"
-        ) as file:
+        with open(path, "r", encoding="utf-8") as file:
             return json.load(file)
-
     except Exception:
         return default
 
@@ -293,15 +248,14 @@ def load_text(filename):
         return ""
 
     try:
-        return path.read_text(
-            encoding="utf-8"
-        )
-
+        return path.read_text(encoding="utf-8")
     except Exception:
         return ""
 
 
 def clear_outputs():
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for item in OUTPUT_DIR.iterdir():
 
@@ -309,15 +263,13 @@ def clear_outputs():
 
             try:
                 item.unlink()
-
             except Exception:
                 pass
 
 
 def clear_uploaded_datasets():
 
-    if not UPLOAD_DIR.exists():
-        return
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
     for item in UPLOAD_DIR.iterdir():
 
@@ -325,7 +277,6 @@ def clear_uploaded_datasets():
 
             try:
                 item.unlink()
-
             except Exception:
                 pass
 
@@ -333,7 +284,6 @@ def clear_uploaded_datasets():
 
             try:
                 shutil.rmtree(item)
-
             except Exception:
                 pass
 
@@ -343,19 +293,10 @@ def save_uploaded_file(uploaded_file):
     clear_uploaded_datasets()
     clear_outputs()
 
-    destination = (
-        UPLOAD_DIR
-        / uploaded_file.name
-    )
+    destination = UPLOAD_DIR / uploaded_file.name
 
-    with open(
-        destination,
-        "wb"
-    ) as file:
-
-        file.write(
-            uploaded_file.getbuffer()
-        )
+    with open(destination, "wb") as file:
+        file.write(uploaded_file.getbuffer())
 
     return destination
 
@@ -364,16 +305,10 @@ def find_uploaded_dataset():
 
     files = []
 
-    for extension in [
-        ".csv",
-        ".xlsx",
-        ".xls"
-    ]:
+    for extension in [".csv", ".xlsx", ".xls"]:
 
         files.extend(
-            UPLOAD_DIR.glob(
-                f"*{extension}"
-            )
+            UPLOAD_DIR.glob(f"*{extension}")
         )
 
     if not files:
@@ -392,12 +327,12 @@ def read_dataset(path):
         if path.suffix.lower() == ".csv":
 
             return pd.read_csv(
-                path
+                path,
+                sep=None,
+                engine="python"
             )
 
-        return pd.read_excel(
-            path
-        )
+        return pd.read_excel(path)
 
     except Exception as error:
 
@@ -413,14 +348,7 @@ def clean_text(value):
     if value is None:
         return ""
 
-    text = str(value)
-
-    text = text.replace(
-        "```",
-        ""
-    )
-
-    return text.strip()
+    return str(value).replace("```", "").strip()
 
 
 def get_hypotheses():
@@ -430,21 +358,10 @@ def get_hypotheses():
         {}
     )
 
-    if isinstance(
-        data,
-        dict
-    ):
+    if isinstance(data, dict):
+        return data.get("hypotheses", [])
 
-        return data.get(
-            "hypotheses",
-            []
-        )
-
-    if isinstance(
-        data,
-        list
-    ):
-
+    if isinstance(data, list):
         return data
 
     return []
@@ -457,20 +374,10 @@ def get_results():
         []
     )
 
-    if isinstance(
-        data,
-        dict
-    ):
+    if isinstance(data, dict):
+        return data.get("results", [])
 
-        return data.get(
-            "results",
-            []
-        )
-
-    return data if isinstance(
-        data,
-        list
-    ) else []
+    return data if isinstance(data, list) else []
 
 
 def get_insights():
@@ -480,20 +387,10 @@ def get_insights():
         {}
     )
 
-    if isinstance(
-        data,
-        dict
-    ):
+    if isinstance(data, dict):
+        return data.get("insights", [])
 
-        return data.get(
-            "insights",
-            []
-        )
-
-    return data if isinstance(
-        data,
-        list
-    ) else []
+    return data if isinstance(data, list) else []
 
 
 def get_visualizations():
@@ -503,42 +400,23 @@ def get_visualizations():
         {}
     )
 
-    if isinstance(
-        data,
-        dict
-    ):
+    if isinstance(data, dict):
+        return data.get("visualizations", [])
 
-        return data.get(
-            "visualizations",
-            []
-        )
-
-    return data if isinstance(
-        data,
-        list
-    ) else []
+    return data if isinstance(data, list) else []
 
 
 # ============================================================
-# VISUALIZATION ENGINE
+# VISUALIZATION
 # ============================================================
 
-def render_visualization(
-    df,
-    visualization
-):
+def render_visualization(df, visualization):
 
-    if not isinstance(
-        visualization,
-        dict
-    ):
+    if not isinstance(visualization, dict):
         return
 
     chart_type = str(
-        visualization.get(
-            "type",
-            ""
-        )
+        visualization.get("type", "")
     ).lower()
 
     columns = visualization.get(
@@ -546,13 +424,8 @@ def render_visualization(
         []
     )
 
-    x = visualization.get(
-        "x"
-    )
-
-    y = visualization.get(
-        "y"
-    )
+    x = visualization.get("x")
+    y = visualization.get("y")
 
     if x is None and len(columns) >= 1:
         x = columns[0]
@@ -560,33 +433,20 @@ def render_visualization(
     if y is None and len(columns) >= 2:
         y = columns[1]
 
-    if (
-        x not in df.columns
-        and x is not None
-    ):
+    if x is not None and x not in df.columns:
         return
 
-    if (
-        y not in df.columns
-        and y is not None
-    ):
+    if y is not None and y not in df.columns:
         return
 
     try:
-
-        # ----------------------------------------------------
-        # HISTOGRAM
-        # ----------------------------------------------------
 
         if chart_type == "histogram":
 
             fig = px.histogram(
                 df,
                 x=x,
-                title=visualization.get(
-                    "title",
-                    ""
-                ),
+                title=visualization.get("title", ""),
                 marginal="box"
             )
 
@@ -595,19 +455,12 @@ def render_visualization(
                 use_container_width=True
             )
 
-        # ----------------------------------------------------
-        # BOXPLOT
-        # ----------------------------------------------------
-
         elif chart_type == "boxplot":
 
             fig = px.box(
                 df,
                 y=y,
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
@@ -615,40 +468,28 @@ def render_visualization(
                 use_container_width=True
             )
 
-        # ----------------------------------------------------
-        # BAR
-        # ----------------------------------------------------
-
         elif chart_type == "bar":
 
-            aggregation = (
-                visualization.get(
-                    "aggregation",
-                    "mean"
-                )
+            aggregation = visualization.get(
+                "aggregation",
+                "mean"
             )
 
-            grouped = (
-                df.groupby(
-                    x,
-                    dropna=False
-                )[y]
-            )
+            grouped = df.groupby(
+                x,
+                dropna=False
+            )[y]
 
             if aggregation == "sum":
-
                 values = grouped.sum()
 
             elif aggregation == "count":
-
                 values = grouped.count()
 
             elif aggregation == "median":
-
                 values = grouped.median()
 
             else:
-
                 values = grouped.mean()
 
             chart_df = (
@@ -665,20 +506,13 @@ def render_visualization(
                 chart_df,
                 x=x,
                 y=y,
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
                 fig,
                 use_container_width=True
             )
-
-        # ----------------------------------------------------
-        # SCATTER
-        # ----------------------------------------------------
 
         elif chart_type == "scatter":
 
@@ -686,11 +520,7 @@ def render_visualization(
                 df,
                 x=x,
                 y=y,
-                title=visualization.get(
-                    "title",
-                    ""
-                ),
-                trendline=None
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
@@ -698,18 +528,9 @@ def render_visualization(
                 use_container_width=True
             )
 
-        # ----------------------------------------------------
-        # TIME SERIES
-        # ----------------------------------------------------
-
         elif chart_type == "time_series":
 
-            temp = df[
-                [
-                    x,
-                    y
-                ]
-            ].copy()
+            temp = df[[x, y]].copy()
 
             temp[x] = pd.to_datetime(
                 temp[x],
@@ -717,27 +538,21 @@ def render_visualization(
             )
 
             temp = temp.dropna(
-                subset=[
-                    x,
-                    y
-                ]
+                subset=[x, y]
             )
 
             if temp.empty:
                 return
 
-            aggregation = (
-                visualization.get(
-                    "aggregation",
-                    "sum"
-                )
+            aggregation = visualization.get(
+                "aggregation",
+                "sum"
             )
 
             if aggregation == "mean":
 
                 trend = (
-                    temp
-                    .groupby(x)[y]
+                    temp.groupby(x)[y]
                     .mean()
                     .reset_index()
                 )
@@ -745,8 +560,7 @@ def render_visualization(
             elif aggregation == "median":
 
                 trend = (
-                    temp
-                    .groupby(x)[y]
+                    temp.groupby(x)[y]
                     .median()
                     .reset_index()
                 )
@@ -754,8 +568,7 @@ def render_visualization(
             else:
 
                 trend = (
-                    temp
-                    .groupby(x)[y]
+                    temp.groupby(x)[y]
                     .sum()
                     .reset_index()
                 )
@@ -765,10 +578,7 @@ def render_visualization(
                 x=x,
                 y=y,
                 markers=True,
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
@@ -776,18 +586,9 @@ def render_visualization(
                 use_container_width=True
             )
 
-        # ----------------------------------------------------
-        # TIME-LIKE OBJECT
-        # ----------------------------------------------------
-
         elif chart_type == "time_of_day":
 
-            temp = df[
-                [
-                    x,
-                    y
-                ]
-            ].copy()
+            temp = df[[x, y]].copy()
 
             temp["_time"] = pd.to_datetime(
                 temp[x].astype(str),
@@ -795,22 +596,16 @@ def render_visualization(
             )
 
             temp = temp.dropna(
-                subset=[
-                    "_time"
-                ]
+                subset=["_time"]
             )
 
             if temp.empty:
                 return
 
-            temp["hour"] = (
-                temp["_time"]
-                .dt.hour
-            )
+            temp["hour"] = temp["_time"].dt.hour
 
             trend = (
-                temp
-                .groupby("hour")[y]
+                temp.groupby("hour")[y]
                 .sum()
                 .reset_index()
             )
@@ -820,10 +615,7 @@ def render_visualization(
                 x="hour",
                 y=y,
                 markers=True,
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             fig.update_xaxes(
@@ -834,10 +626,6 @@ def render_visualization(
                 fig,
                 use_container_width=True
             )
-
-        # ----------------------------------------------------
-        # CATEGORY COUNT
-        # ----------------------------------------------------
 
         elif chart_type == "category_count":
 
@@ -858,20 +646,13 @@ def render_visualization(
                 counts,
                 x=x,
                 y="count",
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
                 fig,
                 use_container_width=True
             )
-
-        # ----------------------------------------------------
-        # HEATMAP
-        # ----------------------------------------------------
 
         elif chart_type == "category_heatmap":
 
@@ -887,10 +668,7 @@ def render_visualization(
                 table,
                 text_auto=True,
                 aspect="auto",
-                title=visualization.get(
-                    "title",
-                    ""
-                )
+                title=visualization.get("title", "")
             )
 
             st.plotly_chart(
@@ -906,7 +684,7 @@ def render_visualization(
 
 
 # ============================================================
-# FIND VISUALIZATION FOR HYPOTHESIS
+# MATCH VISUALIZATION
 # ============================================================
 
 def find_hypothesis_visualization(
@@ -914,14 +692,12 @@ def find_hypothesis_visualization(
     visualizations
 ):
 
-    variables = hypothesis.get(
-        "variables",
-        []
-    )
-
     variables = set(
         str(v)
-        for v in variables
+        for v in hypothesis.get(
+            "variables",
+            []
+        )
     )
 
     method = str(
@@ -931,7 +707,6 @@ def find_hypothesis_visualization(
         )
     ).lower()
 
-    # First try exact variable match
     for visualization in visualizations:
 
         columns = set(
@@ -942,58 +717,32 @@ def find_hypothesis_visualization(
             )
         )
 
-        if (
-            variables
-            and variables.issubset(columns)
-        ):
-
+        if variables and variables.issubset(columns):
             return visualization
 
-    # Then method-based matching
-    if (
-        "correlation" in method
-        or "regression" in method
-    ):
+    if "correlation" in method or "regression" in method:
 
         for visualization in visualizations:
 
-            if visualization.get(
-                "type"
-            ) == "scatter":
-
+            if visualization.get("type") == "scatter":
                 return visualization
 
-    if (
-        "anova" in method
-    ):
+    if "anova" in method:
 
         for visualization in visualizations:
 
-            if visualization.get(
-                "type"
-            ) == "bar":
-
+            if visualization.get("type") == "bar":
                 return visualization
 
-    if (
-        "time" in method
-        or "trend" in method
-    ):
+    if "time" in method or "trend" in method:
 
         for visualization in visualizations:
 
-            if visualization.get(
-                "type"
-            ) == "time_series":
-
+            if visualization.get("type") == "time_series":
                 return visualization
 
     return None
 
-
-# ============================================================
-# FIND RESULT
-# ============================================================
 
 def find_result(
     hypothesis_id,
@@ -1003,21 +752,13 @@ def find_result(
     for result in results:
 
         if str(
-            result.get(
-                "hypothesis_id"
-            )
-        ) == str(
-            hypothesis_id
-        ):
+            result.get("hypothesis_id")
+        ) == str(hypothesis_id):
 
             return result
 
     return None
 
-
-# ============================================================
-# FIND INSIGHT
-# ============================================================
 
 def find_insight(
     hypothesis_id,
@@ -1027,12 +768,8 @@ def find_insight(
     for insight in insights:
 
         if str(
-            insight.get(
-                "hypothesis_id"
-            )
-        ) == str(
-            hypothesis_id
-        ):
+            insight.get("hypothesis_id")
+        ) == str(hypothesis_id):
 
             return insight
 
@@ -1040,45 +777,13 @@ def find_insight(
 
 
 # ============================================================
-# RUN PIPELINE
+# PIPELINE
 # ============================================================
 
 def run_discovery_agent():
 
-    progress = st.progress(
-        0
-    )
-
+    progress = st.progress(0)
     status = st.empty()
-
-    steps = [
-        "Loading dataset...",
-        "Profiling data...",
-        "Generating metadata...",
-        "Generating discovery questions...",
-        "Running analysis...",
-        "Generating insights...",
-        "Creating visualizations..."
-    ]
-
-    for index, step in enumerate(
-        steps[:-1]
-    ):
-
-        status.info(
-            step
-        )
-
-        progress.progress(
-            int(
-                ((index + 1)
-                / len(steps))
-                * 90
-            )
-        )
-
-        # The actual pipeline is executed below.
-        # This loop only gives visual feedback.
 
     status.info(
         "Running Discovery Agent..."
@@ -1089,17 +794,12 @@ def run_discovery_agent():
         process = subprocess.run(
             [
                 sys.executable,
-                str(
-                    BASE_DIR / "main.py"
-                )
+                str(BASE_DIR / "main.py")
             ],
             cwd=str(BASE_DIR),
             capture_output=True,
-            text=True
-        )
-
-        progress.progress(
-            100
+            text=True,
+            timeout=900
         )
 
         if process.returncode != 0:
@@ -1108,22 +808,63 @@ def run_discovery_agent():
                 "Discovery Agent failed."
             )
 
-            with st.expander(
-                "View error details"
-            ):
+            error_text = (
+                process.stderr
+                or process.stdout
+                or "Unknown error."
+            )
 
-                st.code(
-                    process.stderr
-                    or process.stdout
-                )
+            with st.expander(
+                "View pipeline error"
+            ):
+                st.code(error_text)
 
             return False
+
+        progress.progress(100)
 
         status.success(
             "Discovery completed successfully."
         )
 
+        # Verify that actual pipeline output exists.
+        hypotheses = get_hypotheses()
+        results = get_results()
+        insights = get_insights()
+        visualizations = get_visualizations()
+
+        if not hypotheses:
+
+            st.error(
+                "The pipeline finished, but no hypotheses were generated."
+            )
+
+            with st.expander(
+                "View pipeline output"
+            ):
+                st.code(
+                    process.stdout
+                    or "No pipeline output."
+                )
+
+            return False
+
+        st.success(
+            f"Generated {len(hypotheses)} questions, "
+            f"{len(results)} analyses, "
+            f"{len(insights)} insights and "
+            f"{len(visualizations)} visualizations."
+        )
+
         return True
+
+    except subprocess.TimeoutExpired:
+
+        status.error(
+            "Discovery Agent timed out after 15 minutes."
+        )
+
+        return False
 
     except Exception as error:
 
@@ -1135,14 +876,32 @@ def run_discovery_agent():
 
 
 # ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="hero">
+        <div class="hero-title">
+            🔎 Discovery Agent
+        </div>
+
+        <div class="hero-subtitle">
+            Automated data discovery, analysis and insight generation
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
 # SIDEBAR
 # ============================================================
 
 with st.sidebar:
 
-    st.markdown(
-        "## 🔎 Discovery Agent"
-    )
+    st.markdown("## 🔎 Discovery Agent")
 
     st.caption(
         "Automated data discovery and insight system"
@@ -1150,9 +909,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown(
-        "### Input Dataset"
-    )
+    st.markdown("### Input Dataset")
 
     uploaded_file = st.file_uploader(
         "Upload CSV or Excel",
@@ -1160,24 +917,13 @@ with st.sidebar:
             "csv",
             "xlsx",
             "xls"
-        ],
-        help=(
-            "Upload a dataset to start "
-            "the Discovery Agent."
-        )
+        ]
     )
 
     if uploaded_file is not None:
 
-        current_path = (
-            UPLOAD_DIR
-            / uploaded_file.name
-        )
-
-        # Save only when a new file is selected
         if (
-            "uploaded_name"
-            not in st.session_state
+            "uploaded_name" not in st.session_state
             or st.session_state.uploaded_name
             != uploaded_file.name
         ):
@@ -1210,15 +956,11 @@ with st.sidebar:
 
         if run_button:
 
-            success = (
-                run_discovery_agent()
-            )
+            success = run_discovery_agent()
 
             if success:
 
-                st.session_state.pipeline_run = (
-                    True
-                )
+                st.session_state.pipeline_run = True
 
                 st.rerun()
 
@@ -1232,9 +974,7 @@ with st.sidebar:
 
     if dataset_path:
 
-        st.markdown(
-            "### Navigation"
-        )
+        st.markdown("### Navigation")
 
         page = st.radio(
             "Navigation",
@@ -1254,25 +994,6 @@ with st.sidebar:
 
 
 # ============================================================
-# HEADER
-# ============================================================
-
-st.markdown(
-    """
-    <div class="hero">
-        <div class="hero-title">
-            🔎 Discovery Agent
-        </div>
-        <div class="hero-subtitle">
-            Automated data discovery, analysis and insight generation
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
 # EMPTY STATE
 # ============================================================
 
@@ -1280,60 +1001,31 @@ if dataset_path is None:
 
     st.markdown(
         """
-        <div class="upload-card">
+        <div class="dataset-header">
 
             <div class="empty-title">
                 Start with your dataset
             </div>
 
             <div class="empty-text">
-                Upload a CSV or Excel file using the input area
-                on the left. The Discovery Agent will automatically
-                understand the dataset, generate useful questions,
-                analyze them and create relevant visualizations.
+                Upload a CSV or Excel file. The Discovery Agent
+                will automatically understand the dataset,
+                generate discovery questions, analyze them,
+                create visualizations and produce insights.
             </div>
 
             <div class="pipeline">
 
-                <div class="pipeline-item">
-                    Upload
-                </div>
-
-                <div class="pipeline-item">
-                    Profile
-                </div>
-
-                <div class="pipeline-item">
-                    Understand
-                </div>
-
-                <div class="pipeline-item">
-                    Discover Questions
-                </div>
-
-                <div class="pipeline-item">
-                    Analyze
-                </div>
-
-                <div class="pipeline-item">
-                    Visualize
-                </div>
-
-                <div class="pipeline-item">
-                    Insights
-                </div>
+                <div class="pipeline-item">Upload</div>
+                <div class="pipeline-item">Profile</div>
+                <div class="pipeline-item">Understand</div>
+                <div class="pipeline-item">Discover</div>
+                <div class="pipeline-item">Analyze</div>
+                <div class="pipeline-item">Visualize</div>
+                <div class="pipeline-item">Insights</div>
 
             </div>
 
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <div class="footer">
-            No dataset loaded • No previous dataset displayed
         </div>
         """,
         unsafe_allow_html=True
@@ -1343,7 +1035,7 @@ if dataset_path is None:
 
 
 # ============================================================
-# DATASET
+# LOAD DATASET
 # ============================================================
 
 df = read_dataset(
@@ -1351,12 +1043,21 @@ df = read_dataset(
 )
 
 if df is None:
-
     st.stop()
 
 
 # ============================================================
-# DISCOVERY PAGE
+# COMMON OUTPUTS
+# ============================================================
+
+hypotheses = get_hypotheses()
+results = get_results()
+insights = get_insights()
+visualizations = get_visualizations()
+
+
+# ============================================================
+# DISCOVERY
 # ============================================================
 
 if page == "Discovery":
@@ -1378,16 +1079,22 @@ if page == "Discovery":
         unsafe_allow_html=True
     )
 
-    # --------------------------------------------------------
-    # OVERVIEW
-    # --------------------------------------------------------
-
     st.markdown(
         '<div class="section-title">Dataset Overview</div>',
         unsafe_allow_html=True
     )
 
     cols = st.columns(4)
+
+    missing = int(
+        df.isna().sum().sum()
+    )
+
+    numeric_count = len(
+        df.select_dtypes(
+            include="number"
+        ).columns
+    )
 
     with cols[0]:
 
@@ -1415,12 +1122,6 @@ if page == "Discovery":
 
     with cols[2]:
 
-        missing = int(
-            df.isna()
-            .sum()
-            .sum()
-        )
-
         st.markdown(
             f"""
             <div class="kpi">
@@ -1433,12 +1134,6 @@ if page == "Discovery":
 
     with cols[3]:
 
-        numeric_count = len(
-            df.select_dtypes(
-                include="number"
-            ).columns
-        )
-
         st.markdown(
             f"""
             <div class="kpi">
@@ -1449,13 +1144,8 @@ if page == "Discovery":
             unsafe_allow_html=True
         )
 
-    # --------------------------------------------------------
-    # QUICK DATA VIEW
-    # --------------------------------------------------------
-
     with st.expander(
-        "Preview dataset",
-        expanded=False
+        "Preview dataset"
     ):
 
         st.dataframe(
@@ -1464,51 +1154,26 @@ if page == "Discovery":
             hide_index=True
         )
 
-    # --------------------------------------------------------
-    # CHECK PIPELINE OUTPUT
-    # --------------------------------------------------------
-
-    hypotheses = get_hypotheses()
-    results = get_results()
-    insights = get_insights()
-    visualizations = get_visualizations()
+    st.markdown(
+        '<div class="section-title">Discovery Questions</div>',
+        unsafe_allow_html=True
+    )
 
     if not hypotheses:
 
-        st.markdown(
-            """
-            <div class="section-title">
-                Discovery Questions
-            </div>
-
-            <div class="section-subtitle">
-                Upload the dataset and click
-                <b>Run Discovery Agent</b> to begin.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
         st.info(
-            "No discovery analysis has been run for this dataset yet."
+            "Upload the dataset and click "
+            "'Run Discovery Agent' to begin."
         )
 
         st.stop()
 
-    # --------------------------------------------------------
-    # DISCOVERY FLOW
-    # --------------------------------------------------------
-
     st.markdown(
         """
-        <div class="section-title">
-            Discovery Questions
-        </div>
-
         <div class="section-subtitle">
             The agent investigates the dataset one question at a time.
-            Each question is followed by its reasoning, solution,
-            result, visualization and insight.
+            Each question includes the problem, solution approach,
+            analysis result, visualization and insight.
         </div>
         """,
         unsafe_allow_html=True
@@ -1564,11 +1229,9 @@ if page == "Discovery":
             insights
         )
 
-        visualization = (
-            find_hypothesis_visualization(
-                hypothesis,
-                visualizations
-            )
+        visualization = find_hypothesis_visualization(
+            hypothesis,
+            visualizations
         )
 
         st.markdown(
@@ -1592,10 +1255,6 @@ if page == "Discovery":
             unsafe_allow_html=True
         )
 
-        # ----------------------------------------------------
-        # WHAT ARE WE FINDING?
-        # ----------------------------------------------------
-
         st.markdown(
             "#### 1. What are we trying to find?"
         )
@@ -1608,10 +1267,6 @@ if page == "Discovery":
             """,
             unsafe_allow_html=True
         )
-
-        # ----------------------------------------------------
-        # HOW WILL WE SOLVE IT?
-        # ----------------------------------------------------
 
         st.markdown(
             "#### 2. How will we solve it?"
@@ -1626,10 +1281,6 @@ if page == "Discovery":
             unsafe_allow_html=True
         )
 
-        # ----------------------------------------------------
-        # ANALYSIS RESULT
-        # ----------------------------------------------------
-
         st.markdown(
             "#### 3. What did the analysis find?"
         )
@@ -1640,11 +1291,6 @@ if page == "Discovery":
                 result.get(
                     "conclusion"
                 )
-            )
-
-            result_data = result.get(
-                "result",
-                {}
             )
 
             if conclusion:
@@ -1658,13 +1304,15 @@ if page == "Discovery":
                     unsafe_allow_html=True
                 )
 
-            # Display useful result values
+            result_data = result.get(
+                "result",
+                {}
+            )
+
             if isinstance(
                 result_data,
                 dict
             ):
-
-                display_values = []
 
                 important_keys = [
                     "correlation_coefficient",
@@ -1677,51 +1325,41 @@ if page == "Discovery":
                     "observations"
                 ]
 
+                values = []
+
                 for key in important_keys:
 
                     if key in result_data:
 
                         label = (
                             key
-                            .replace(
-                                "_",
-                                " "
-                            )
+                            .replace("_", " ")
                             .title()
                         )
 
-                        value = result_data[
-                            key
-                        ]
-
-                        display_values.append(
+                        values.append(
                             (
                                 label,
-                                value
+                                result_data[key]
                             )
                         )
 
-                if display_values:
+                if values:
 
                     result_cols = st.columns(
-                        min(
-                            4,
-                            len(display_values)
-                        )
+                        min(4, len(values))
                     )
 
                     for col, item in zip(
                         result_cols,
-                        display_values
+                        values
                     ):
 
                         with col:
 
                             st.metric(
                                 item[0],
-                                str(
-                                    item[1]
-                                )
+                                str(item[1])
                             )
 
         else:
@@ -1729,10 +1367,6 @@ if page == "Discovery":
             st.info(
                 "Analysis result is not available."
             )
-
-        # ----------------------------------------------------
-        # VISUALIZATION
-        # ----------------------------------------------------
 
         st.markdown(
             "#### 4. What does the visualization show?"
@@ -1757,10 +1391,6 @@ if page == "Discovery":
             st.info(
                 "No visualization was generated for this question."
             )
-
-        # ----------------------------------------------------
-        # INSIGHT
-        # ----------------------------------------------------
 
         st.markdown(
             "#### 5. What is the main insight?"
@@ -1791,14 +1421,22 @@ if page == "Discovery":
                 )
             )
 
-            st.markdown(
-                f"""
-                <div class="insight-box">
-                    {expected}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            if expected:
+
+                st.markdown(
+                    f"""
+                    <div class="insight-box">
+                        {expected}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            else:
+
+                st.info(
+                    "Insight is not available."
+                )
 
         st.divider()
 
@@ -1835,9 +1473,8 @@ elif page == "Dataset":
 
         for column in df.columns:
 
-            mask = (
-                mask
-                | df[column]
+            mask |= (
+                df[column]
                 .astype(str)
                 .str.contains(
                     search,
@@ -1846,9 +1483,7 @@ elif page == "Dataset":
                 )
             )
 
-        filtered = df[
-            mask
-        ]
+        filtered = df[mask]
 
     st.dataframe(
         filtered.head(500),
@@ -1858,7 +1493,7 @@ elif page == "Dataset":
 
 
 # ============================================================
-# METADATA PAGE
+# METADATA
 # ============================================================
 
 elif page == "Metadata":
@@ -1880,37 +1515,33 @@ elif page == "Metadata":
 
     if metadata:
 
-        st.markdown(
-            "### Dataset Description"
-        )
-
         description = (
-            metadata.get(
-                "description"
-            )
-            or metadata.get(
-                "dataset_description"
-            )
-            or metadata.get(
-                "overview"
-            )
+            metadata.get("description")
+            or metadata.get("dataset_description")
+            or metadata.get("overview")
         )
 
         if description:
 
+            st.markdown(
+                "### Dataset Description"
+            )
+
             st.write(
-                clean_text(
-                    description
-                )
+                clean_text(description)
             )
 
         with st.expander(
             "View complete metadata"
         ):
 
-            st.json(
-                metadata
-            )
+            st.json(metadata)
+
+    else:
+
+        st.info(
+            "Metadata is not available yet."
+        )
 
     if profile:
 
@@ -1922,9 +1553,7 @@ elif page == "Metadata":
             "View profile"
         ):
 
-            st.json(
-                profile
-            )
+            st.json(profile)
 
 
 # ============================================================
@@ -1938,33 +1567,34 @@ elif page == "Analysis Details":
         unsafe_allow_html=True
     )
 
-    results = get_results()
-
     if not results:
 
         st.info(
             "No analysis results available."
         )
 
-    for result in results:
+    else:
 
-        st.markdown(
-            f"### Question {result.get('hypothesis_id', '')}"
-        )
+        for result in results:
 
-        st.write(
-            result.get(
-                "question",
-                ""
+            st.markdown(
+                f"### Question "
+                f"{result.get('hypothesis_id', '')}"
             )
-        )
 
-        st.json(
-            result.get(
-                "result",
-                result
+            st.write(
+                result.get(
+                    "question",
+                    ""
+                )
             )
-        )
+
+            st.json(
+                result.get(
+                    "result",
+                    result
+                )
+            )
 
 
 # ============================================================
